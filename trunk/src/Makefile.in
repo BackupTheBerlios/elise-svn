@@ -64,7 +64,7 @@ PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
 bin_PROGRAMS = elise
-elise_SOURCES = elise.c                  screen.h screen.c                 list.h   list.c                   error.h  error.c                  client.h client.c                 event.h  event.c
+elise_SOURCES = elise.c                  screen.h screen.c                 list.h   list.c                   error.h  error.c                  client.h client.c                 event.h  event.c                  action.h action.c
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
@@ -79,7 +79,8 @@ X_CFLAGS = @X_CFLAGS@
 X_LIBS = @X_LIBS@
 X_EXTRA_LIBS = @X_EXTRA_LIBS@
 X_PRE_LIBS = @X_PRE_LIBS@
-elise_OBJECTS =  elise.o screen.o list.o error.o client.o event.o
+elise_OBJECTS =  elise.o screen.o list.o error.o client.o event.o \
+action.o
 elise_LDADD = $(LDADD)
 elise_DEPENDENCIES = 
 elise_LDFLAGS = 
@@ -94,8 +95,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/client.P .deps/elise.P .deps/error.P .deps/event.P \
-.deps/list.P .deps/screen.P
+DEP_FILES =  .deps/action.P .deps/client.P .deps/elise.P .deps/error.P \
+.deps/event.P .deps/list.P .deps/screen.P
 SOURCES = $(elise_SOURCES)
 OBJECTS = $(elise_OBJECTS)
 

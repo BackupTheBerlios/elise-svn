@@ -1,9 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-
-#include <stdio.h>
-#include <stdlib.h>
 
 #include "list.h"
 #include "screen.h"
@@ -29,6 +29,7 @@ static client_item *create_client(Display *display, Window window,
     /* set some values for clients */
     client->window  = window;
     client->attribs = attribs;
+    client->screen  = screen;
     XFetchName(display, window, &client->name);
 
     /* create the new clients parent */
@@ -37,8 +38,10 @@ static client_item *create_client(Display *display, Window window,
                                         client->attribs->y,
                                         client->attribs->width,
                                         client->attribs->height + 18,
-                                        0, BlackPixel(display, screen->num),
-                                        WhitePixel(display, screen->num));
+                                        0, BlackPixel(display, screen->index),
+                                        WhitePixel(display, screen->index));
+
+    XSelectInput(display, client->window, PropertyChangeMask);
 
     /* set some attribtes for the new window */
     set_attribs.do_not_propagate_mask = ButtonPressMask | ButtonReleaseMask;
@@ -50,7 +53,7 @@ static client_item *create_client(Display *display, Window window,
                 ButtonPressMask, GrabModeSync, GrabModeAsync, None, None);
     XSelectInput(display, client->frame, SubstructureNotifyMask |
                  SubstructureRedirectMask);
-    XChangeWindowAttributes(display, client->frame, CWEventMask, &set_attribs);
+    XChangeWindowAttributes(display, client->window, CWEventMask, &set_attribs);
     XAddToSaveSet(display, window);
 
     XMapWindow(display, client->frame);
@@ -66,9 +69,21 @@ static client_item *create_client(Display *display, Window window,
     return (client);
 }
 
+void client_destroy(Display *display, client_item *client,
+                    XContext *client_context) {
+
+#ifdef DEBUG
+    warn(__FILE__, "Removing %s.\n", client->name);
+#endif
+
+    XDeleteContext(display, client->frame, *client_context);
+    XDeleteContext(display, client->window, *client_context);
+    XDestroyWindow(display, client->frame);
+}
+
 list_header *client_get_list(Display *display, screen_item *screen,
                              XContext *client_context) {
-    int i, window_count;
+    int i, window_count, *list_index;
     list_header *list;
     client_item *client;
     Window dummy, *windows;
@@ -89,10 +104,11 @@ list_header *client_get_list(Display *display, screen_item *screen,
         if (attribs.map_state == IsViewable ) {
             client = create_client(display, windows[i], &attribs, screen,
                                    client_context);
-            list_append_node(list, client);
+            client->index = &list_get_index_from_node(list_append_node(list,
+                                                                   client));
 #ifdef DEBUG
             warn(__FILE__, "Creating client (%s) on screen %d.\n",
-                 client->name, screen->num);
+                 client->name, screen->index);
 #endif
         }
     }

@@ -3,6 +3,7 @@
 
 #define NULL_NODE                       ((list_node *)0)
 
+#define list_get_index_from_node(node)  node->index
 #define list_get_data_from_node(node)   node->data
 #define list_get_count(header)          header->count
 #define list_foreach(header, node)      for (node = header->head; \
@@ -34,8 +35,9 @@ typedef struct LIST_HEADER {
 
 list_header *list_init(free_data_func free_func);
 void list_destroy(list_header *header);
-int list_append_node(list_header *header, list_data *data);
-int list_prepend_node(list_header *header, list_data *data);
+list_node *list_append_node(list_header *header, list_data *data);
+list_node *list_prepend_node(list_header *header, list_data *data);
 list_data *list_get_data_by_index(list_header *header, int index);
+int list_del_node_by_index(list_header *header, int index);
 
 #endif

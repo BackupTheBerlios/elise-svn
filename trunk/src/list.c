@@ -74,15 +74,32 @@ int list_del_node_by_index(list_header *header, int index) {
     list_node *node;
     
     /* check constraints for index */
-    if (index < 0 || index > header->count) return (0);
+    if (index < 0 || index > header->count)
+        return (0);
 
     node = get_node_by_index(header, index);
 
-    if (node->prev == NULL_NODE)
-        node->next->prev = NULL_NODE;
+    /* update the index values */
+    shift_index_right(node, -1);
 
-    if (node->next == NULL_NODE)
-        node->prev->next = NULL_NODE;
+    /* my head hurts */
+    if (node->prev != NULL_NODE) {
+        if (node->next != NULL_NODE) {
+            node->prev->next = node->next;
+            node->next->prev = node->prev;
+        } else {
+            node->prev->next = NULL_NODE;
+            header->tail     = node->prev;
+        }
+    } else {
+        if (node->next != NULL_NODE) {
+            node->next->prev = NULL_NODE;
+            header->head     = node->next;
+        } else {
+            header->head = NULL_NODE;
+            header->tail = NULL_NODE;
+        }
+    }
 
     /* call the user defined free function and then free() itself */
     if (header->free_func)
@@ -115,12 +132,12 @@ static list_node *list_get_new_node(list_header *header, void *data) {
     return (node);
 }
 
-int list_prepend_node(list_header *header, void *data) {
+list_node *list_prepend_node(list_header *header, void *data) {
     list_node *node;
 
     /* get our new node first */
     if ((node = list_get_new_node(header, data)) == NULL_NODE)
-        return (0);
+        return (NULL_NODE);
 
     /* first node needs special treatment */
     if (header->head == NULL_NODE)
@@ -135,15 +152,15 @@ int list_prepend_node(list_header *header, void *data) {
     header->head = node;
     header->count++;
     
-    return (1);
+    return (node);
 }
 
-int list_append_node(list_header *header, void *data) {
+list_node *list_append_node(list_header *header, void *data) {
     list_node *node;
 
     /* get our new node first */
     if ((node = list_get_new_node(header, data)) == NULL_NODE)
-        return (0);
+        return (NULL_NODE);
 
     /* first node needs special treatment */
     if (header->head == NULL_NODE) {
@@ -159,5 +176,5 @@ int list_append_node(list_header *header, void *data) {
     node->prev   = header->tail;
     header->tail = node;
 
-    return (1);
+    return (node);
 }
